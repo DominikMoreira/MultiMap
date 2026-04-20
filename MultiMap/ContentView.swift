@@ -5,17 +5,40 @@
 //  Created by Dominik de Jesus Moreira on 20.04.26.
 //
 
+import MapKit
 import SwiftUI
 
 struct ContentView: View {
+
+    @State private var mapCamera = MapCameraPosition.region(
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(
+                latitude: 51.507222,
+                longitude: -0.1275
+            ),
+            span: MKCoordinateSpan(latitudeDelta: 1, longitudeDelta: 1)
+        )
+    )
+
+    let locations = [
+        Location(name: "London", latitude: 51.507222, longitude: -0.1275),
+        Location(name: "Glasgow", latitude: 55.8618752, longitude: -4.2546099),
+    ]
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Map(position: $mapCamera) {
+            ForEach(locations) { location in
+                Annotation(location.name, coordinate: location.coordinate) {
+                    Text(location.name)
+                        .font(.headline)
+                        .padding(5)
+                        .padding(.horizontal, 5)
+                        .background(.black)
+                        .foregroundStyle(.white)
+                        .clipShape(.capsule)
+                }
+            }
         }
-        .padding()
     }
 }
 
