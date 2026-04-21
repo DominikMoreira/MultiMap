@@ -20,24 +20,60 @@ struct ContentView: View {
         )
     )
 
-    let locations = [
-        Location(name: "London", latitude: 51.507222, longitude: -0.1275),
-        Location(name: "Glasgow", latitude: 55.8618752, longitude: -4.2546099),
-    ]
+    @State private var searchText = ""
+    @State private var locations = [Location]()
 
     var body: some View {
-        Map(position: $mapCamera) {
-            ForEach(locations) { location in
-                Annotation(location.name, coordinate: location.coordinate) {
-                    Text(location.name)
-                        .font(.headline)
-                        .padding(5)
-                        .padding(.horizontal, 5)
-                        .background(.black)
-                        .foregroundStyle(.white)
-                        .clipShape(.capsule)
+        VStack {
+            HStack {
+                TextField("Search for something ...", text: $searchText)
+                    .onSubmit(runSearch)
+
+                Button("Go", action: runSearch)
+            }
+            .padding([.horizontal, .top])
+
+            Map(position: $mapCamera) {
+                ForEach(locations) { location in
+                    Annotation(location.name, coordinate: location.coordinate) {
+                        Text(location.name)
+                            .font(.headline)
+                            .padding(5)
+                            .padding(.horizontal, 5)
+                            .background(.black)
+                            .foregroundStyle(.white)
+                            .clipShape(.capsule)
+                    }
                 }
             }
+        }
+    }
+
+    func runSearch() {
+        Task {
+            let searchRequest = MKLocalSearch.Request()
+            searchRequest.naturalLanguageQuery = searchText
+
+            if let region = mapCamera.region {
+                searchRequest.region = region
+            }
+
+            let search = MKLocalSearch(request: searchRequest)
+            let response = try await search.start()
+            guard let item = response.mapItems.first else { return }
+            guard let itemName = item.name else { return }
+
+            let itemLocation = item.location
+
+            let newLocation = Location(
+                name: itemName,
+                latitude:
+                    itemLocation.coordinate.latitude,
+                longitude:
+                    itemLocation.coordinate.longitude
+            )
+            locations.append(newLocation)
+
         }
     }
 }
