@@ -33,26 +33,16 @@ struct ContentView: View {
             }
             .frame(minWidth: 200)
         } detail: {
-            VStack {
-                HStack {
-                    TextField("Search for something ...", text: $searchText)
-                        .onSubmit(runSearch)
-
-                    Button("Go", action: runSearch)
-                }
-                .padding([.horizontal, .top])
-
-                Map(position: $mapCamera) {
-                    ForEach(locations) { location in
-                        Annotation(location.name, coordinate: location.coordinate) {
-                            Text(location.name)
-                                .font(.headline)
-                                .padding(5)
-                                .padding(.horizontal, 5)
-                                .background(.black)
-                                .foregroundStyle(.white)
-                                .clipShape(.capsule)
-                        }
+            Map(position: $mapCamera) {
+                ForEach(locations) { location in
+                    Annotation(location.name, coordinate: location.coordinate) {
+                        Text(location.name)
+                            .font(.headline)
+                            .padding(5)
+                            .padding(.horizontal, 5)
+                            .background(.black)
+                            .foregroundStyle(.white)
+                            .clipShape(.capsule)
                     }
                 }
             }
@@ -72,6 +62,9 @@ struct ContentView: View {
                 mapCamera =
                 .region(newRegion)
             }
+            .ignoresSafeArea()
+            .searchable(text: $searchText, placement: .sidebar)
+            .onSubmit(of: .search, runSearch)
         }
     }
 
