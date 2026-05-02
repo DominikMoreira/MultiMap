@@ -22,7 +22,7 @@ struct ContentView: View {
     
     @State private var selectedLocations = Set<Location>()
 
-    @State private var searchText = ""
+    @AppStorage("searchText") private var searchText = ""
     @State private var locations = [Location]()
 
     var body: some View {
@@ -30,6 +30,11 @@ struct ContentView: View {
             List(locations, selection: $selectedLocations) { location in
                 Text(location.name)
                     .tag(location)
+                    .contextMenu {
+                        Button("Delete", role: .destructive) {
+                            delete(location)
+                        }
+                    }
             }
             .frame(minWidth: 200)
         } detail: {
@@ -59,12 +64,19 @@ struct ContentView: View {
                 
                 newRegion.span.latitudeDelta *= 1.5
                 newRegion.span.longitudeDelta *= 1.5
-                mapCamera =
-                .region(newRegion)
+                withAnimation {
+                    mapCamera =
+                        .region(newRegion)
+                }
             }
             .ignoresSafeArea()
             .searchable(text: $searchText, placement: .sidebar)
             .onSubmit(of: .search, runSearch)
+            .onDeleteCommand {
+                for location in selectedLocations {
+                    delete(location)
+                }
+            }
         }
     }
 
@@ -91,9 +103,21 @@ struct ContentView: View {
                 longitude:
                     itemLocation.coordinate.longitude
             )
+            for location in locations {
+                if location.name == newLocation.name {
+                    selectedLocations = [newLocation]
+                    return
+                }
+            }
             locations.append(newLocation)
             selectedLocations = [newLocation]
+            searchText = ""
         }
+    }
+    
+    func delete(_ location: Location) {
+        guard let index = locations.firstIndex(of: location) else { return }
+        locations.remove(at: index)
     }
 }
 
